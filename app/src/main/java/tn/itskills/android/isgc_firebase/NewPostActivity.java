@@ -5,6 +5,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -92,13 +93,14 @@ public class NewPostActivity extends BaseActivity {
         //getUid from Auth
         final String userId = getUid();
 
+        Log.i("ISGC", "UserId = "+userId);
         //implement listener addListenerForSingleValueEvent from mDatabase.child("users").child(userId)
         //this listener onDataChange add method that create dataSnapshot
         //here we need to getValue from dataSnapshot and Serializable data into new User object using User.class
         //then test if User != null, we call writeNewPostMethod (writeNewPost(userId, user.username, title, body);)
         //Else we show error message.
         //finally, call finish method to close NewPostActivity and back to HomeActivity
-        mDatabase.child("users").child(getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+        mDatabase.child("users").child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 User user = dataSnapshot.getValue(User.class);
