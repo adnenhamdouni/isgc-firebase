@@ -1,0 +1,1 @@
+ISGC - Firebase Initiation
