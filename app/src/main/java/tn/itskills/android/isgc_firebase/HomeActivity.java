@@ -6,13 +6,17 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
@@ -28,6 +32,7 @@ public class HomeActivity extends AppCompatActivity implements ValueEventListene
     private ArrayList<Post> mPosts;
 
     //2.Add FirebaseDatabase mDatabase object
+    private DatabaseReference mDatabase;
 
 
     @Override
@@ -68,8 +73,10 @@ public class HomeActivity extends AppCompatActivity implements ValueEventListene
     private void initFirebase() {
 
         //FirebaseDatabase mDatabase reference
+        mDatabase = FirebaseDatabase.getInstance().getReference();
 
         //Create new mDatabase.addValueEventListener
+        mDatabase.addValueEventListener(this);
 
 
     }
@@ -90,13 +97,20 @@ public class HomeActivity extends AppCompatActivity implements ValueEventListene
         //here we need to getValue from keys and Serializable data into mPost object using Post.class
         //then add it to mPosts list, Finally, append mPost.author and mPost.title into mPostMessage. "\n"
 
+        for (DataSnapshot keys : dataSnapshot.child("posts").getChildren()) {
+            mPost = keys.getValue(Post.class);
+            mPosts.add(mPost);
+            mPostMessage.append(mPost.author+": " +  mPostMessage + "\n");
+
+        }
+
 
     }
 
     @Override
     public void onCancelled(DatabaseError databaseError) {
         // Getting Post failed, log a message into mPostMessage
-
+        Log.d("ISGC", "onCancelled:error = "+databaseError.getMessage());
     }
 
     /*
@@ -106,7 +120,7 @@ public class HomeActivity extends AppCompatActivity implements ValueEventListene
     private void signOut() {
 
         // signOut using FirebaseAuth instance
-
+        FirebaseAuth.getInstance().signOut();
 
         // Back to MainActivity
         startActivity(new Intent(this, MainActivity.class));
@@ -133,7 +147,7 @@ public class HomeActivity extends AppCompatActivity implements ValueEventListene
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_logout) {
             signOut();
             return true;
         }
