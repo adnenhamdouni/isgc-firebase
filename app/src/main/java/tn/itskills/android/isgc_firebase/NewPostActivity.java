@@ -7,11 +7,19 @@ import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
+
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import tn.itskills.android.isgc_firebase.models.Post;
+import tn.itskills.android.isgc_firebase.models.User;
 
 public class NewPostActivity extends BaseActivity {
 
@@ -19,6 +27,7 @@ public class NewPostActivity extends BaseActivity {
     private EditText mBodyField;
 
     //1.Add FirebaseDatabase mDatabase object
+    private DatabaseReference mDatabase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,7 +64,7 @@ public class NewPostActivity extends BaseActivity {
     private void initFirebase() {
 
         //FirebaseDatabase mDatabase reference
-
+        mDatabase = FirebaseDatabase.getInstance().getReference();
 
 
     }
@@ -89,6 +98,26 @@ public class NewPostActivity extends BaseActivity {
         //then test if User != null, we call writeNewPostMethod (writeNewPost(userId, user.username, title, body);)
         //Else we show error message.
         //finally, call finish method to close NewPostActivity and back to HomeActivity
+        mDatabase.child("users").child(getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                User user = dataSnapshot.getValue(User.class);
+                if (user != null) {
+                    writeNewPost(getUid(), user.getUsername(), title, body);
+                    finish();
+                } else {
+                    Toast.makeText(NewPostActivity.this, "Failed to write post",
+                            Toast.LENGTH_SHORT).show();
+                }
+
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
 
 
     }
@@ -96,7 +125,7 @@ public class NewPostActivity extends BaseActivity {
     private void writeNewPost(String userId, String username, String title, String body) {
 
         //getKey from mDatabase.child("posts") after use push();
-
+        String key = mDatabase.child("posts").push().getKey();
         //Create new post
         Post post = new Post(userId, username, title, body);
 
@@ -107,9 +136,11 @@ public class NewPostActivity extends BaseActivity {
         Map<String, Object> childUpdates = new HashMap<>();
         // First child key ==> "/posts/" + key with postValues;
         // First child key ==> "/user-posts/" + userId + "/" + key with postValues;
-
+        childUpdates.put("/posts/" + key, postValues);
+        childUpdates.put("/user-posts/" + userId + "/" + key, postValues);
 
         // update mDatabaseChildren
+        mDatabase.updateChildren(childUpdates);
 
     }
 
