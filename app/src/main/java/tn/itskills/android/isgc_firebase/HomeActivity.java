@@ -100,7 +100,7 @@ public class HomeActivity extends AppCompatActivity implements ValueEventListene
         for (DataSnapshot keys : dataSnapshot.child("posts").getChildren()) {
             mPost = keys.getValue(Post.class);
             mPosts.add(mPost);
-            mPostMessage.append(mPost.author+": " +  mPostMessage + "\n");
+            mPostMessage.append(mPost.author+": " +  mPost.title + "\n");
 
         }
 
